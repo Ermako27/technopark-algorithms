@@ -1,12 +1,13 @@
 #include <iostream>
 
-void printArray(double *arr, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		std::cout << " " << arr[i];
-	}
-}
+
+/*
+Даны два массива неповторяющихся целых чисел, упорядоченные по возрастанию. A[0..n-1] и B[0..m-1]. n >> m. Найдите их пересечение. 
+Требуемое время работы: O(m * log k), где k - позиция элемента B[m-1] в массиве A.
+ В процессе поиска очередного элемента B[i] в массиве A пользуйтесь результатом поиска элемента B[i-1].
+n, k ≤ 10000.
+
+*/
 
 int binarySearch(const double *arr, int count, double elem, int prevPos)
 {
@@ -17,7 +18,6 @@ int binarySearch(const double *arr, int count, double elem, int prevPos)
 	while (left <= right)
 	{
 		mid = (left + right) / 2;
-		// std::cout << "mid: " << mid;
 		if (arr[mid] < elem)
 			left = mid + 1;
 		else if (arr[mid] > elem)
@@ -33,45 +33,38 @@ int main()
 	int n;
 	int m;
 	int result;
-	// int prePosition;
-	// double object;
-	std::cout << "введите размер массива N: ";
+	int prevPosition;
+
 	std::cin >> n;
 	double *nArr = new double[n];
 
-	std::cout << "введите размер массива M: ";
 	std::cin >> m;
 	double *mArr = new double[m];
 
-	std::cout << "заполните массив N: ";
 	for (int i = 0; i < n; i++)
 		std::cin >> nArr[i];
 
-	// std::cout << "Что искать?: ";
-	// std::cin >> object;
-
-	std::cout << "\nзаполните массив M: ";
 	for (int i = 0; i < m; i++)
 		std::cin >> mArr[i];
 
-	printArray(nArr, n);
-	std::cout << "\n";
-	printArray(mArr, m);
-
-	std::cout << "\nпересечение массивов: ";
-
 	for (int i = 0; i < m; i++)
-	{
+	{	
+		prevPosition = result;
 		result = binarySearch(nArr, n, mArr[i], result);
 		if (result != -1)
-			std::cout << nArr[result] << " ";
-		else
-			result = 0;
+		{
+			if (nArr[result] != mArr[m-1])
+				std::cout << nArr[result] << " ";
+			else 
+				std::cout << nArr[result] << "\n";
 
+		}
+		else
+			result = prevPosition;
 	}
 
-	// result = binarySearch(nArr, n, object);
-	// std::cout << "\nПозиция искомого элемента: " << result;
+	delete[] nArr;
+	delete[] mArr;
 
 	return 0;
 }
