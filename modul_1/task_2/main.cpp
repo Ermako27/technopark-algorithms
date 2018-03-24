@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <assert.h>
 
 /*
 Даны два массива неповторяющихся целых чисел, упорядоченные по возрастанию. A[0..n-1] и B[0..m-1]. n >> m. Найдите их пересечение. 
@@ -14,7 +14,6 @@ int binarySearch(const double *arr, int count, double elem, int prevPos)
 	int left = prevPos;
 	int right = count - 1;
 	int mid;
-	int search = -1;
 	while (left <= right)
 	{
 		mid = (left + right) / 2;
@@ -36,20 +35,24 @@ int main()
 	int prevPosition;
 
 	std::cin >> n;
+	assert(n <= 10000);
 	double *nArr = new double[n];
 
 	std::cin >> m;
+	assert(m <= 10000);
 	double *mArr = new double[m];
 
+	// заполнение массивов
 	for (int i = 0; i < n; i++)
 		std::cin >> nArr[i];
 
 	for (int i = 0; i < m; i++)
 		std::cin >> mArr[i];
 
+
 	for (int i = 0; i < m; i++)
 	{	
-		prevPosition = result;
+		prevPosition = result; // сохраняем позицию предыдущего найденного элемента
 		result = binarySearch(nArr, n, mArr[i], result);
 		if (result != -1)
 		{
