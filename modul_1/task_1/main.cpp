@@ -1,43 +1,33 @@
 #include <iostream>
+#include <assert.h>
+/*
+
+“Считалочка”. В круг выстроено N человек, пронумерованных числами от 1 до N. 
+Будем исключать каждого k-ого до тех пор, пока не уцелеет только один человек. 
+(Например, если N=10, k=3, то сначала умрет 3-й, потом 6-й, затем 9-й, затем 2-й, затем 7-й, потом 1-й, потом 8-й, за ним - 5-й, и потом 10-й. 
+Таким образом, уцелеет 4-й.) Необходимо определить номер уцелевшего.
+N, k ≤ 10000.
+
+
+*/
+int schitalochka(int n, int k)
+{
+	int curPos = 0;
+	for (int i = 1; i <= n; ++i)
+		curPos = (curPos + k) % i;
+	
+	return ++curPos;
+}
 
 int main()
 {
 	int n;
 	int k;
 	std::cin >> n >> k;
-	int *ar = new int[n];
-	if (ar == nullptr)
-	{
-		delete ar;
-		return 0;
-	}
-	for (int i = 0; i < n; i++)
-	{
-		ar[i] = 1;
-	}
-
-	int curPos = 0;
-	int i = 0;
-	int nCopy = n;
-	int result;
-	while (n != 0)
-	{
-		if (ar[curPos % nCopy] != 0)
-		{
-			result = curPos % nCopy;
-			i += 1;
-			if (i == k)
-			{
-				ar[curPos % nCopy] = 0;
-				i = 0;
-				n -= 1;
-			}
-		}
-		curPos += 1;
-	}
-
-	result += 1;
-	std::cout << result;
-
-    return 0;
+	assert(n > 0 && n <= 10000 && k > 0 && k <= 10000);
+    if (n == 1) 
+    	std::cout << 1;
+    else 
+    	std::cout << schitalochka(n,k);
+	return 0;
 }
