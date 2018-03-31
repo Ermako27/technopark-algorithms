@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <assert.h>
+#include <vector>
 
 
 
@@ -16,107 +17,131 @@ class Hippo
 {
 public:
 
-	int* heap;
-	int heapSize;
+	Hippo(std::vector<int> array);
 
-	explicit Hippo(int size);
-	~Hippo() {delete[] heap; };
-	void siftUp(int* arr, int i);
-	void siftDown(int* arr, int i);
-	void buildheap(int* arr);
+	~Hippo(){};
+
+
 	void printHeap();
-	int howManySteps(int* arr, int k);
-	// void grow();
-	// void addElement(int elem);
+
+	void add(int elem);
+
+	int extractMax();
+
+	bool IsEmpty();
+
+	int Max();
+
+private:
+	std::vector<int> heap;
+	void siftUp(int i);
+
+	void siftDown(int i);
 };
 
-Hippo::Hippo(int size) // конструктор
-{
-	heapSize = size;
-	heap = new int[heapSize];
-}
-
-void Hippo::printHeap()
+void Hippo::printHeap() // функция печати
 {
 	std::cout << "\n";
-	for (int i = 0; i < heapSize; i++)
+	for (int i = 0; i < heap.size(); i++)
 		std::cout << heap[i] << " |";
 	std::cout << "\n";
 }
 
-void Hippo::siftUp(int* arr, int i) // просеивание вверх
-{
-	while (i > 0)
-	{
-		int dad = (i - 1) / 2;
-		if (arr[i] <= arr[dad])
-			return;
-		std::swap(arr[i], arr[dad]);
-		i = dad;
 
-		std::cout << "\n\n";
-		printHeap();
-		std::cout << "\n\n";
+Hippo::Hippo(std::vector<int> array) // конструктор
+{
+	this->heap = array;
+	int start = heap.size() / 2 - 1;
+	for (int i = start; i >= 0; i--)
+		siftDown(i);
+}
+
+void Hippo::siftUp(int i)
+{
+	while(i > 0)
+	{
+		int parent = (i - 1) / 2;
+		if (heap[parent] >= heap[i])
+			return;
+		std::swap(heap[parent],heap[i]);
+		i = parent;
 	}
 }
 
-void Hippo::siftDown(int* arr, int i)
+void Hippo::siftDown(int i)
 {
-	int right = 2 * i + 2;
 	int left = 2 * i + 1;
+	int right = left + 1;
 
 	int biggest = i;
-	if (left < heapSize && arr[left] > arr[i])
+	if (left < heap.size() && heap[left] > heap[i])
 		biggest = left;
 
-	if (right < heapSize && arr[right] > arr[biggest])
+	if (right < heap.size() && heap[right] > heap[biggest])
 		biggest = right;
 
 	if (biggest != i)
 	{
-		std::swap(arr[i], arr[biggest]);
-		siftDown(arr, biggest);
+		std::swap(heap[i], heap[biggest]);
+		siftDown(biggest);
 	}
 }
 
-void Hippo::buildheap(int* arr)
-{
-	for (int i = heapSize / 2 - 1; i >= 0; i--)
-		siftDown(arr,i);
+void Hippo::add(int elem) 
+{	
+	int s = heap.size(); // размер кучи
+	heap.push_back(elem);
+	siftUp(s-1);
 }
 
-int Hippo::howManySteps(int* arr, int k)
+int Hippo::extractMax()
 {
+	assert(!heap.empty());
+	int max = heap[0]; // взяли максимальный элемент
+	heap[0] = heap.back(); // последний элемент заносим в корень
+	heap.pop_back(); // удаляем его из конца
+	siftDown(0); // просеиваем вниз
+	return max;
+}
+
+bool Hippo::IsEmpty() 
+{
+    return heap.empty();
+}
+
+int Hippo::Max() 
+{
+    return heap[0];
+}
+
+
+
+int howManySteps(std::vector<int> fruitsArray, int k)
+{
+	Hippo hp(fruitsArray);
 	int steps = 0;
 	int copyK = k;
-	int count = 0;
-	int countOfFruits = heapSize;
-	// std::cout << "countOfFruits" << countOfFruits;
-	// printHeap();
-	while (countOfFruits != 0)
+	int tmp;
+	int max;
+	while(!hp.IsEmpty())
 	{
-
-		while(k >= arr[0] && countOfFruits && count != heapSize) // пока не кончится грузоподъемность 
+		std::vector<int> tmpHeap; // временный массив для хранения надкусанных фруктов
+		while(!hp.IsEmpty() && hp.Max() <= k) // пока есть фрукты и хватает грузоподъемности
 		{
-			// printHeap();
-			k -= arr[0];
-			if (arr[0] > 1)
-				arr[0] = arr[0] / 2; 
-
-			else if (arr[0] = 1) // если фрукт весит 1 то мы его съедаем полностью
-			{
-				countOfFruits -= 1;
-				arr[0] = 0;
-			}
-			buildheap(arr); // строим кучу по новым данным
-			// printHeap();
-			count += 1;
+			k -= hp.Max();
+			max = hp.extractMax(); // укусили фрукт
+			tmpHeap.push_back(max); 
 		}
-		steps += 1;
-		// std::cout << k << "\n";
+
+		while(!tmpHeap.empty()) // пока есть надкусанные фрукты
+		{
+			tmp = tmpHeap.back();
+			tmpHeap.pop_back();
+			if (tmp != 1) // фрукты весом 1 съедаются
+				hp.add(tmp / 2); // просеиваем половину их веса обратно в кучу(корзину)
+		}
+		steps++;
 		k = copyK;
-		count = 0;
-		// printHeap();
 	}
 	return steps;
 }
@@ -128,27 +153,17 @@ int main()
 	int elem;
 	int k; // грузоподъемность 
 	int result;
-
-	// std::cout << "Введите размер кучи: ";
 	std::cin >>	size;
 
-	Hippo hp(size); // объект кучи
-
-	// std::cout << "\nВведите элементы кучи: ";
+	std::vector<int> array((unsigned int) size);
 	for (int i = 0; i < size; i++)
 	{
 		std::cin >> elem;
-		hp.heap[i] = elem;
+		array[i] = elem;
 	}
 
-	hp.buildheap(hp.heap);
-
-	// std::cout << "\nКучи: ";
-	// hp.printHeap();
-
-	// std::cout << "\nВведите грузоподъемность: ";
 	std::cin >>	k;
-	result = hp.howManySteps(hp.heap, k);
+	result = howManySteps(array, k);
 	std::cout << result;
 
 	return 0;
