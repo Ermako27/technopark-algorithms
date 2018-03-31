@@ -17,17 +17,15 @@ a = 4 - pop back
 Требуется напечатать YES - если все ожидаемые значения совпали. Иначе, если хотя бы одно ожидание не оправдалось, то напечатать NO.
 
 3_1. Реализовать очередь с динамическим зацикленным буфером.
-
 */
 
 class Queue {
 
 public: 
-	explicit Queue( int size );
+	Queue();
 	~Queue() { delete[] buffer; }
 	void push(int elem);
 	int pop();
-	void grow(); // увеличение буфера
 private:
 	int *buffer; // сам буфер
 	int buffSize; // размер буфера
@@ -35,58 +33,58 @@ private:
 	int head; // первый в очереди 
 	int tail; // последний
 
+	void grow(); // увеличение буфера
 };
 
 
-Queue::Queue(int size): buffSize(size), count(0), head(0), tail(0)
+Queue::Queue(): buffSize(8), count(0), head(0), tail(0)
 {
-	buffer = new int[size+1];
+	buffer = new int[buffSize];
 }
 
-void Queue::grow()
-{
-	int newbuffSize = buffSize * 2;
-	int *newbuffer = new int[newbuffSize+1];
-	int i = 0;
-	i += buffSize;
-	for (int i = 0; i <= count; i++)
-	{
-		newbuffer[i] = buffer[i];
-	}
-	delete[] buffer;
-	buffer = newbuffer;
-	buffSize = newbuffSize;
-	// std::cout << "i: " << i << "\n";
-	tail = i;
-	tail = (tail-1) % buffSize;
-	head = 0;
 
+void Queue::grow() 
+{
+    int i = 0;
+    int *newbuffer = new int[buffSize * 2];
+    
+    for (int j = head; j < tail; j++) 
+    {
+        newbuffer[i] = buffer[j % buffSize];
+        i++;
+    }
+    buffSize = buffSize * 2;
+    head = 0; 
+    tail = buffSize / 2;
+    delete[] buffer;
+    buffer = newbuffer;
+    
 }
 
-void Queue::push(int elem)
-{
 
-	if ((tail + 1) % buffSize == head) // если следующий за последним - первый в очереди,то массив полон -> увеличить буфер
-		grow();
-	buffer[tail] = elem;
-	tail = (tail + 1) % buffSize;
-	count++; // увеличиваем счетчик количества элементов
+void Queue::push(int b) 
+{
+    if (count == buffSize) // если количество элементов равно размеру буфера 
+        grow();
+
+    buffer[tail % buffSize] = b;
+    tail++;
+    count++;
 }
 
-int Queue::pop()
+
+int Queue::pop() 
 {
-	int res;
-	if (head == tail) // если позиции первого и последнего совпали, значит массив пуст
-		return -1;
-	res = buffer[head];
-	head = (head + 1) % buffSize;
-	count--; // уменьшаем счетчик количества элементов
-	return res;
+    if (count == 0) 
+        return -1;
+    head++;
+    count--;
+    return buffer[(head - 1) % buffSize ];
 }
 
 int main()
 {
-	Queue qObj(1000);
+	Queue qObj;
 
 	int comand, value;
 
