@@ -184,12 +184,11 @@ int Hash::hash_func(const string& word, int i){
 bool Hash::insert( const string& word ){
 
 	cout << 1 << '\n';
-	if ( search(word) )
-	{
-		cout << "!!!!!!!!!1" << '\n';
+	if ( search(word) ){
+		// cout << "!!!!!!!!!1" << '\n';
 		return false; // при попытке вставить повторяющийся элемент
 	}
-	cout << 3 << '\n';
+	// cout << 3 << '\n';
 
 	// cout << "COUNT " << count_of_elements <<'\n';
 	// cout << "SIZEOF " << size_of_table <<'\n';
@@ -198,11 +197,11 @@ bool Hash::insert( const string& word ){
 
 	if ((double)(count_of_elements/size_of_table) >= 0.75) // если коэффициент заполнения больше 3/4 перехешируем
 	{
-		cout << "COUNT " << count_of_elements <<'\n';
-		cout << "SIZEOF " << size_of_table <<'\n';
-		cout << 4 << '\n';
+		// cout << "COUNT " << count_of_elements <<'\n';
+		// cout << "SIZEOF " << size_of_table <<'\n';
+		// cout << 4 << '\n';
 		resize();
-		cout << 5 << '\n';
+		// cout << 5 << '\n';
 		// cout << "COUNT " << count_of_elements <<'\n';
 		// cout << "SIZEOF " << size_of_table <<'\n';
 	}
@@ -210,16 +209,16 @@ bool Hash::insert( const string& word ){
 		// cout << "&&&&&&&&&&&&&&&&7"<< '\n';
 
 	for (int i = 0; i < size_of_table; i++){ // пробегаем по массиву
-		cout << 4 << '\n';
+		// cout << 4 << '\n';
 		int position = hash_func( word, i ); // находим позицию слова в массиве
-		cout << 5 << '\n';
-		cout << "position" << position << '\n'; 
+		// cout << 5 << '\n';
+		// cout << "position" << position << '\n'; 
 		if ( table[position].is_deleted == true ){  // если позиция пуста
 			table[position].elem = word;
-			cout << "word: " << table[position].elem << '\n';
+			// cout << "word: " << table[position].elem << '\n';
 			table[position].is_deleted = false; // позиция занята
 			count_of_elements += 1;
-			cout << "elements: " << count_of_elements << '\n';
+			// cout << "elements: " << count_of_elements << '\n';
 			return true;
 		}
 	}
@@ -260,46 +259,73 @@ bool Hash::search( const string& word){
 	return false;
 }
 
-int main()
-{
+// int main()
+// {
 
-	Hash tb(8);
-	string word1 = "google";
-	string word2 = "mic";
-	string word3 = "python";
-	string word4 = "php";
-	string word5 = "nginx";
-	string word6 = "django";
-	string word7 = "js";
-	string word8 = "rust";
+// 	Hash tb(8);
+// 	string word1 = "google";
+// 	string word2 = "mic";
+// 	string word3 = "python";
+// 	string word4 = "php";
+// 	string word5 = "nginx";
+// 	string word6 = "django";
+// 	string word7 = "js";
+// 	string word8 = "rust";
 
-	tb.hash_print();
-	tb.insert(word1);
-	tb.hash_print();
-	tb.insert(word2);
-	tb.hash_print();
-	tb.insert(word3);
-	tb.hash_print();
-	tb.insert(word4);
-	tb.hash_print();
-	tb.insert(word5);
-	tb.hash_print();
-	tb.insert(word6);
-	tb.hash_print();
-	tb.insert(word7);
-	tb.hash_print();
-	tb.insert(word8);
-	tb.hash_print();
-
-
-
-	// tb.insert(wor);
-	// tb.hash_print();
-	// tb.remove( word );
-	// tb.hash_print();
-	// cout << "^^^"<< tb.search(word) << '\n';
+// 	tb.hash_print();
+// 	tb.insert(word1);
+// 	tb.hash_print();
+// 	tb.insert(word2);
+// 	tb.hash_print();
+// 	tb.insert(word3);
+// 	tb.hash_print();
+// 	tb.insert(word4);
+// 	tb.hash_print();
+// 	tb.insert(word5);
+// 	tb.hash_print();
+// 	tb.insert(word6);
+// 	tb.hash_print();
+// 	tb.insert(word7);
+// 	tb.hash_print();
+// 	tb.insert(word8);
+// 	tb.hash_print();
 
 
-	return 0;
+
+// 	// tb.insert(wor);
+// 	// tb.hash_print();
+// 	// tb.remove( word );
+// 	// tb.hash_print();
+// 	// cout << "^^^"<< tb.search(word) << '\n';
+
+
+// 	return 0;
+// }
+
+int main() {
+    char c;
+    string word;
+
+    Hash tb(8);
+
+    while (cin >> c >> word) {
+        bool result;
+
+        switch (c) {
+        case '+':
+            result = tb.insert(word);
+            break;
+        case '-':
+            result = tb.remove(word);
+            break;
+        case '?':
+            result = tb.search(word);
+            break;
+        default:
+            result = false;
+        }
+
+        cout << ((result) ? "OK" : "FAIL") << "\n";
+    }
+    return 0;
 }
-
