@@ -11,8 +11,8 @@
 
 
 #include <iostream>
-#include <vector>
 #include <stack>
+#include <vector>
 
 using namespace std;
 
@@ -24,7 +24,7 @@ public:
 	Btree();
 	~Btree();
 	void insert(T elem);
-	vector<T> inOrderTraverse();
+	vector<T> inOrder();
 
 private:
 
@@ -37,7 +37,6 @@ private:
 
 	TreeNode *root = nullptr;
 
-	vector<TreeNode*> _inOrderTraverse();
 };
 
 
@@ -46,25 +45,42 @@ Btree<T>::Btree() {}
 
 template<typename T>
 Btree<T>::~Btree(){
-    vector<TreeNode*> tmp = _inOrderTraverse();
-    for (TreeNode* x : tmp){
-        delete x;
+    vector<TreeNode*> result;
+
+    TreeNode* currentLeaf = root;
+    stack<TreeNode*> tmp;
+    while (currentLeaf != nullptr || !tmp.empty()) {
+        if (currentLeaf != nullptr) {
+            tmp.push(currentLeaf);
+            currentLeaf = currentLeaf->left;
+        } 
+        else {
+            currentLeaf = tmp.top();
+            tmp.pop();
+            result.push_back(currentLeaf);
+            currentLeaf = currentLeaf->right;
+        }
+    }
+
+    for (TreeNode* x : result){
+    	delete x;
     }
 }
 
 
 template<typename T>
 void Btree<T>::insert(T elem){
+	bool done = false;
 	if( root == nullptr) {
 		root = new TreeNode( elem );
 	}
 	else {
 		TreeNode *currentLeaf = root;
-		while ( true ){
+		while ( !done ){
 			if (elem >= currentLeaf->value){
 				if (currentLeaf->right == nullptr){
 					currentLeaf->right = new TreeNode(elem);
-					break;
+					done = true;
 				}
 				else{
 					currentLeaf = currentLeaf->right;
@@ -73,7 +89,7 @@ void Btree<T>::insert(T elem){
 			else{
 				if (currentLeaf->left == nullptr){
 					currentLeaf->left = new TreeNode(elem);
-					break;
+					done = true;
 				}
 				else{
 					currentLeaf = currentLeaf->left;
@@ -84,39 +100,63 @@ void Btree<T>::insert(T elem){
 }
 
 template<typename T>
-vector<typename Btree<T>::TreeNode*> Btree<T>::_inOrderTraverse(){
-    vector<TreeNode*> result;
-
+vector<T> Btree<T>::inOrder(){
+    vector<T> result;
     TreeNode* currentLeaf = root;
     stack<TreeNode*> tmp;
-    while (!tmp.empty() || currentLeaf != nullptr) {
+    while (currentLeaf != nullptr || !tmp.empty()) {
         if (currentLeaf != nullptr) {
             tmp.push(currentLeaf);
             currentLeaf = currentLeaf->left;
-        } else {
+        } 
+        else {
             currentLeaf = tmp.top();
             tmp.pop();
-            result.push_back(currentLeaf);
+            result.push_back(currentLeaf->value);
             currentLeaf = currentLeaf->right;
         }
     }
+    return result;
+}
 
-    // for (TreeNode* x : result){
-    // 	cout << x << ' ';
-    // }
+
+template<typename T>
+vector<T> Btree<T>::preOrder(){
+    vector<T> result;
+    TreeNode* currentLeaf = root;
+    stack<TreeNode*> tmp;
+    while (currentLeaf != nullptr || !tmp.empty()) {
+        if (currentLeaf != nullptr) {
+            tmp.push(currentLeaf);
+            currentLeaf = currentLeaf->left;
+        } 
+        else {
+            currentLeaf = tmp.top();
+            tmp.pop();
+            result.push_back(currentLeaf->value);
+            currentLeaf = currentLeaf->right;
+        }
+    }
     return result;
 }
 
 template<typename T>
-vector<T> Btree<T>::inOrderTraverse() {
+vector<T> Btree<T>::postOrder(){
     vector<T> result;
-
-    vector<TreeNode*> tmp = _inOrderTraverse();
-    // result.reserve(inOrderEntryTraverse.size());
-    for (TreeNode* x : tmp) {
-        result.push_back(x->value);
+    TreeNode* currentLeaf = root;
+    stack<TreeNode*> tmp;
+    while (currentLeaf != nullptr || !tmp.empty()) {
+        if (currentLeaf != nullptr) {
+            tmp.push(currentLeaf);
+            currentLeaf = currentLeaf->left;
+        } 
+        else {
+            currentLeaf = tmp.top();
+            tmp.pop();
+            result.push_back(currentLeaf->value);
+            currentLeaf = currentLeaf->right;
+        }
     }
-
     return result;
 }
 
@@ -133,7 +173,7 @@ int main()
 		tree.insert(elem);
 	}
 
-	vector<int> node = tree.inOrderTraverse();
+	vector<int> node = tree.inOrder();
 	for (int x : node){
 		cout << x << " ";
 	}
