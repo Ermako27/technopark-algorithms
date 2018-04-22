@@ -120,47 +120,6 @@ vector<T> Btree<T>::inOrder(){
 }
 
 
-template<typename T>
-vector<T> Btree<T>::preOrder(){
-    vector<T> result;
-    TreeNode* currentLeaf = root;
-    stack<TreeNode*> tmp;
-    while (currentLeaf != nullptr || !tmp.empty()) {
-        if (currentLeaf != nullptr) {
-            tmp.push(currentLeaf);
-            currentLeaf = currentLeaf->left;
-        } 
-        else {
-            currentLeaf = tmp.top();
-            tmp.pop();
-            result.push_back(currentLeaf->value);
-            currentLeaf = currentLeaf->right;
-        }
-    }
-    return result;
-}
-
-template<typename T>
-vector<T> Btree<T>::postOrder(){
-    vector<T> result;
-    TreeNode* currentLeaf = root;
-    stack<TreeNode*> tmp;
-    while (currentLeaf != nullptr || !tmp.empty()) {
-        if (currentLeaf != nullptr) {
-            tmp.push(currentLeaf);
-            currentLeaf = currentLeaf->left;
-        } 
-        else {
-            currentLeaf = tmp.top();
-            tmp.pop();
-            result.push_back(currentLeaf->value);
-            currentLeaf = currentLeaf->right;
-        }
-    }
-    return result;
-}
-
-
 int main()
 {
 	int n;
