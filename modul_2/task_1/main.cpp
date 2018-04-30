@@ -1,183 +1,253 @@
+/*
+Реализуйте структуру данных типа “множество строк” на основе динамической хеш-таблицы с открытой адресацией. Хранимые строки непустые и состоят из строчных латинских букв.
+Хеш-функция строки должна быть реализована с помощью вычисления значения многочлена методом Горнера.
+Начальный размер таблицы должен быть равным 8-ми. Перехеширование выполняйте при добавлении элементов в случае, когда коэффициент заполнения таблицы достигает 3/4.
+
+1_2. Для разрешения коллизий используйте двойное хеширование.
+
+
+Формат входных данных
+Каждая строка входных данных задает одну операцию над множеством. Запись операции состоит из типа операции и следующей за ним через пробел строки, над которой проводится операция.
+Тип операции  – один из трех символов:
+    +  означает добавление данной строки в множество; 
+    -  означает удаление  строки из множества;  
+    ?  означает проверку принадлежности данной строки множеству. 
+При добавлении элемента в множество НЕ ГАРАНТИРУЕТСЯ, что он отсутствует в этом множестве. При удалении элемента из множества НЕ ГАРАНТИРУЕТСЯ, что он присутствует в этом множестве.
+
+stdin:
+
++ hello
++ bye
+? bye
++ bye
+- bye
+? bye
+? hello
+
+stdout:
+
+OK
+OK
+OK
+FAIL
+OK
+FAIL
+OK
+*/
+
 #include <assert.h>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <time.h>
 
 using namespace std;
 
+template<typename T>
 class Hash
 {
 public:
-	explicit Hash( int size );
+	Hash(int size);
+	// ~Hash();
 
-	// добавление true - элемент добавился
-	bool insert( const string& word );
-
-	// удаление true - элемент удалился
-	bool remove( const string& word );
-
-	// поиск true - элемент нашелся
-	bool search( const string& word );
-
-	void hash_print();
-
+	bool insert(const T& elem);
+	bool remove(const T& elem);
+	bool search(const T& elem);
+	void show();
 private:
-
-	// перехеширование
-	void resize();
-
-	// структура одного элемента
-	typedef struct 
+	void rehash();
+	struct HashNode 
 	{
-		string elem;
-		bool is_deleted = true;
-	} elem_t;
-
-	// хеш-таблица
-	vector<elem_t> table;
-
-	// две хеш функции для двойного хеширования 
-	int hash_func( const string& word, int i );
-	int h1( const string& word );
-	int h2( const string& word );
+		explicit HashNode(T elem) : value(elem) {}
+		T value;
+		bool is_deleted = false;
+	};
 
 	int count_of_elements;
-	int size_of_table; // всегда степень двойки
+	int size_of_table;
+	vector<HashNode*> table;
 
+	// хешфункции
+	int hash1( const T& word );
+	int hash2( const T& word );
 };
 
 
-
-Hash::Hash( int size ) : size_of_table(size), table(size), count_of_elements(0)
-{}
-
-void Hash::hash_print(){
-	for (int i = 0; i < size_of_table; i++){
-		if (table[i].is_deleted == true)
-			cout << "NULL |";
-		else
-			cout << table[i].elem << " | ";
-	}
-	cout << '\n';
-}
-
-
-void Hash::resize(){
-	// hash_print();
-	count_of_elements = 0;
-	int old_size = size_of_table;
-	size_of_table = size_of_table * 2;
-	vector<elem_t> old_table = table;
-	vector<elem_t> new_table(size_of_table);
-	// hash_print();
-	table = new_table;
-	// hash_print();
-	for (int i = 0; i < old_size; i++){
-		if (old_table[i].is_deleted == false){
-			insert(old_table[i].elem);
-			// hash_print();
-			// count_of_elements -= 1; // костыль чтобы перезаписанные эелменты не считались новыми
-		}
-	}
-	// hash_print();
-}
-
-
-//////////////////////////////  ХЕШ-ФУНКИЦЯ //////////////////////////////////////
-
-int Hash::h1( const string& word ){ // с конца строки
+template<typename T>
+int Hash<T>::hash1( const T& word ){ // с конца строки
 	int ln = word.length(); // берем длину строки
 	int a = 127;
 	int result = 0;
 	for (int i = ln - 1; i >=0 ; --i){
-
 		result = (result * a + (word[i] - '0')) % size_of_table;
 	}
 
-	return result;
+	return result % size_of_table;
 }
 
-int Hash::h2( const string& word ){ // с начала строки
-	int a = 127;
+template<typename T>
+void Hash<T>::show(){
+	for (int i = 0; i < size_of_table; i++){
+		if(table[i] != nullptr && !table[i]->is_deleted){
+			cout << table[i]->value << " | ";
+		}
+		else
+			cout << "NULL |";
+	}
+	cout << "\n";
+}
+
+template<typename T>
+int Hash<T>::hash2( const T& word ){ // с начала строки, необходимо чтобы h2 была нечетна, а size_of_table был степенью 2 -> будут взаимно простыми
+	int a = 237;
 	int result = 0;
 	for (auto x : word)
 		result = (result * a + (x - '0')) % size_of_table;
 	if (result % 2 == 0)
 		return result+1;
-	// cout << "H2 " <<result << '\n';
-	return result;
-}
-
-int Hash::hash_func(const string& word, int i){
-	int result = (h1( word ) + i*h2( word )) % size_of_table;
-	return result;
+	return result % size_of_table;
 }
 
 
 
-///////////////////////////// МЕТОДЫ /////////////////////////////////////////////
+template<typename T>
+Hash<T>::Hash(int size) : size_of_table(size), table(size_of_table, nullptr), count_of_elements(0)
+{}
 
-bool Hash::insert( const string& word ){
+template<typename T>
+void Hash<T>::rehash() {
+	int old_size = size_of_table;
+    size_of_table *= 2;
+    vector<HashNode*> newTable;
+    newTable.resize(size_of_table, nullptr);
 
-	if ( search(word) ){
-		return false; // при попытке вставить повторяющийся элемент
-	}
+    for (int i = 0; i < old_size; i++) {
+        if (table[i] != nullptr && !table[i]->is_deleted) {
+            int h1 = hash1(table[i]->value);
+            int h2 = hash2(table[i]->value);
 
-	double fill_coeff = (double)count_of_elements / (double)size_of_table;
-	if (fill_coeff >= 0.75){ // если коэффициент заполнения больше 3/4 перехешируем
-	
-		resize();
-	}
+            int j = 0;
+            while (newTable[h1] != nullptr && j < size_of_table) {
+                h1 = (h1 + h2) % size_of_table;
+                j++;
+            }
+            newTable[h1] = new HashNode(table[i]->value);
+        }
+    }
 
-
-	for (int i = 0; i < size_of_table; i++){ // пробегаем по массиву
-		int position = hash_func( word, i ); // находим позицию слова в массиве
-		if ( table[position].is_deleted == true ){  // если позиция пуста
-			table[position].elem = word;
-			table[position].is_deleted = false; // позиция занята
-			count_of_elements += 1;
-			// hash_print();
-			// cout << "count of elemnts: " << count_of_elements << '\n';
-
-			return true;
-		}
-	}
-	// hash_print();
+    table = newTable;
 }
 
-bool Hash::remove( const string& word ){
-	for (int i = 0; i < size_of_table; i++){ 
-		int position = hash_func( word, i );
 
-		if ( table[position].is_deleted == true) // если 
+
+
+// void Hash<T>::resize(){
+// 	int old_size = size_of_table;
+// 	size_of_table *= 2;
+// 	vector<HashNode*> new_table(size_of_table,nullptr);
+// 	for (int i = 0; i < old_size; i++){
+// 		if (table[i] != nullptr && !table[i]->is_deleted){
+// 			cout << "VALUE: " << table[i]->value;
+// 			int h1 = hash1(table[i]->value);
+// 			int h2 = hash2(table[i]->value);
+// 			int j = 0;
+// 			// int h1 = (h1 + j * h2)% size_of_table;
+// 			while(table[h1] != nullptr && j < size_of_table){
+// 				// cout<< "CUR: " << table[h1]->value << "\n";
+// 				h1 = (h1 + h2)% size_of_table;
+// 				j++;
+// 				// h1 = (h1 + j * h2)% size_of_table;
+// 			}
+// 			cout << "h1: " << h1 << "\n";
+// 			new_table[h1] = new HashNode(table[i]->value);
+// 		}
+// 	}
+
+// 	table = new_table;
+// }
+
+
+template<typename T>
+bool Hash<T>::insert(const T& elem){
+	double alpha  = (double)count_of_elements / (double)size_of_table;
+	// cout << "BEFORE: ";
+	// show();
+	if (alpha >= 0.75){
+		rehash();
+		// cout << "BEFORE: ";
+		// show();
+	}
+
+	int h1 = hash1(elem);
+	int h2 = hash2(elem);
+
+	int i = 0;
+	int firstdeleted = -1;
+	while (table[h1] != nullptr && i < size_of_table){
+		if (table[h1]->value == elem && !table[h1]->is_deleted){
 			return false;
-
-		if ( table[position].elem == word ){
-			table[position].is_deleted = true; // пометили элемент как удаленный
-			count_of_elements -= 1;
-			return true;
 		}
+		if (table[h1]->is_deleted && firstdeleted < 0){
+			firstdeleted = h1;
+		}
+			h1 = (h1 + h2)% size_of_table;
+			i++;
 	}
+
+	if (firstdeleted < 0){
+		table[h1] = new HashNode(elem);
+	}
+	else{
+		table[firstdeleted]->value = elem;
+		table[firstdeleted]->is_deleted = false;
+	}
+	count_of_elements++;
+	// cout << "AFTER: ";
+	// show();
+	return true;
 }
 
+template<typename T>
+bool Hash<T>::remove(const T& elem){
+	int h1 = hash1(elem);
+	int h2 = hash2(elem);
 
-bool Hash::search( const string& word){
-	for (int i = 0; i < size_of_table; i++){
-		int position = hash_func( word, i );
-		if ( table[position].is_deleted == true) // если удален
-			continue;
-
-		if ( table[position].elem == word )
-			return true; // нашли слово
+	int i = 0;
+	while (table[h1] != nullptr && i < size_of_table){
+		if(table[h1]->value == elem && !table[h1]->is_deleted){
+			table[h1]->is_deleted = true;
+			count_of_elements--;
+			return true;
+		}
+		h1 = (h1 + h2)% size_of_table;
+		i++;
 	}
 	return false;
 }
+
+
+template<typename T>
+bool Hash<T>::search(const T& elem){
+	int h1 = hash1(elem);
+	int h2 = hash2(elem);
+
+	int i = 0;
+	while (table[h1] != nullptr && i < size_of_table){
+		if (table[h1]->value == elem && !table[h1]->is_deleted){
+			return true;
+		}
+		h1 = (h1 + h2)% size_of_table;
+		i++;;
+	}
+	return false;
+}
+
 
 int main() {
     char c;
     string word;
 
-    Hash tb(8);
+    Hash<string> tb(8);
 
     while (cin >> c >> word) {
         bool result;
