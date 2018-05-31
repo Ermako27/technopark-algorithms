@@ -9,11 +9,27 @@ n, k ≤ 10000.
 
 */
 
-int binarySearch(const double *arr, int count, double elem, int prevPos)
+void searchBorders(double *a, int n, double element, int &first, int &last) {
+    int index = 1;
+
+    if (index < first)
+        index = first;
+
+    while (index < n && a[index] < element)
+    	index *= 2;
+
+    if ((first < index/2))
+        first = index / 2;
+
+    last = index > n ? n : index;
+}
+
+int binarySearch(double *arr, int count, double elem, int prevPos)
 {
 	int left = prevPos;
 	int right = count - 1;
 	int mid;
+	searchBorders(arr, count, elem, left, right);
 	while (left <= right)
 	{
 		mid = (left + right) / 2;
@@ -31,7 +47,7 @@ int main()
 {
 	int n;
 	int m;
-	int result;
+	int result = 0;
 	int prevPosition;
 
 	std::cin >> n;
