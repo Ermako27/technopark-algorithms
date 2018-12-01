@@ -105,14 +105,14 @@ vector<T> Btree<T>::inOrder(){
     TreeNode* currentLeaf = root;
     stack<TreeNode*> tmp;
     while (currentLeaf != nullptr || !tmp.empty()) {
-        if (currentLeaf != nullptr) {
-            tmp.push(currentLeaf);
-            currentLeaf = currentLeaf->left;
+        if (currentLeaf != nullptr) { // смещаемся влево до самого маленького элемента
+            tmp.push(currentLeaf); // добавляем в стек пройденные элементы 
+            currentLeaf = currentLeaf->left; // дойдя до листа, currentLeaf становится равным nullptr
         } 
         else {
-            currentLeaf = tmp.top();
-            tmp.pop();
-            result.push_back(currentLeaf->value);
+            currentLeaf = tmp.top(); // достаем лист из стека
+            tmp.pop(); // удаляем этот лист из стека 
+            result.push_back(currentLeaf->value); // записываем его значение в результат
             currentLeaf = currentLeaf->right;
         }
     }

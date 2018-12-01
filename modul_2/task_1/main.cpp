@@ -35,46 +35,51 @@ FAIL
 OK
 */
 
-#include <assert.h>
 #include <iostream>
-#include <string>
 #include <vector>
-#include <time.h>
+#include <string>
 
-using namespace std;
+
 
 template<typename T>
-class Hash
-{
+class HashTable {
 public:
-	Hash(int size);
-	// ~Hash();
 
-	bool insert(const T& elem);
-	bool remove(const T& elem);
-	bool search(const T& elem);
-	void show();
+    HashTable(int size, const T& _del, const T _empty);
+    ~HashTable(){}
+
+    T empty;
+    T del;
+
+    bool has(const T& key);
+    bool add(const T& key);
+    bool remove(const T& key);
+
 private:
-	void rehash();
-	struct HashNode 
-	{
-		explicit HashNode(T elem) : value(elem) {}
-		T value;
-		bool is_deleted = false;
-	};
+    void reHash();
 
-	int count_of_elements;
-	int size_of_table;
-	vector<HashNode*> table;
+    std::vector<T> table;
+    int count_of_elements;
+    int size_of_table;
 
-	// хешфункции
-	int hash1( const T& word );
-	int hash2( const T& word );
+    int hash1( const T& word );
+    int hash2( const T& word );
+
 };
 
-
 template<typename T>
-int Hash<T>::hash1( const T& word ){ // с конца строки
+HashTable<T>::HashTable(int size, T _del, T _empty){
+    size_of_table = size;
+    del = _del;
+    empty = _empty;
+    count_of_elements = 0;
+    for (int i = 0; i < size_of_table; i++)
+        table.push_back(empty);
+}
+
+/////////////// ХЕШ-ФУКНЦИИ /////////////////////
+template<typename T>
+int HashTable<T>::hash1( const T& word ){ // с конца строки
 	int ln = word.length(); // берем длину строки
 	int a = 127;
 	int result = 0;
@@ -85,20 +90,9 @@ int Hash<T>::hash1( const T& word ){ // с конца строки
 	return result % size_of_table;
 }
 
-template<typename T>
-void Hash<T>::show(){
-	for (int i = 0; i < size_of_table; i++){
-		if(table[i] != nullptr && !table[i]->is_deleted){
-			cout << table[i]->value << " | ";
-		}
-		else
-			cout << "NULL |";
-	}
-	cout << "\n";
-}
 
 template<typename T>
-int Hash<T>::hash2( const T& word ){ // с начала строки, необходимо чтобы h2 была нечетна, а size_of_table был степенью 2 -> будут взаимно простыми
+int HashTable<T>::hash2( const T& word ){ // с начала строки, необходимо чтобы h2 была нечетна, а size_of_table был степенью 2 -> будут взаимно простыми
 	int a = 237;
 	int result = 0;
 	for (auto x : word)
@@ -109,164 +103,125 @@ int Hash<T>::hash2( const T& word ){ // с начала строки, необх
 }
 
 
+//////////////////// МЕТОДЫ ///////////////////////////
+
 
 template<typename T>
-Hash<T>::Hash(int size) : size_of_table(size), table(size_of_table, nullptr), count_of_elements(0)
-{}
+void HashTable<T>::reHash() {
+    std::vector<T> newData;
+    newData.resize(size_of_table*2, empty);
 
-template<typename T>
-void Hash<T>::rehash() {
-	int old_size = size_of_table;
+    for (int i = 0; i < size_of_table; i++) {
+        if (table[i] != empty && table[i] != del) {
+    		int h2 = hash2(table[i]);
+    		int j = 0;
+    		int h = hash1(table[i]);
+    		while (newData[h] != empty && j < size_of_table * 2) {
+        		i++;
+        		h = (h + h2) % (size_of_table * 2);
+    		}
+    		newData[h] = table[i];
+        }
+    }
+    table = newData;
     size_of_table *= 2;
-    vector<HashNode*> newTable;
-    newTable.resize(size_of_table, nullptr);
+}
 
-    for (int i = 0; i < old_size; i++) {
-        if (table[i] != nullptr && !table[i]->is_deleted) {
-            int h1 = hash1(table[i]->value);
-            int h2 = hash2(table[i]->value);
 
-            int j = 0;
-            while (newTable[h1] != nullptr && j < size_of_table) {
-                h1 = (h1 + h2) % size_of_table;
-                j++;
-            }
-            newTable[h1] = new HashNode(table[i]->value);
+template<typename T>
+bool HashTable<T>::has(const T& key) {
+    int i = 0;
+    int h2 = hash2(key);
+    int h = hash1(key);
+
+    while (table[h] != empty && i < size_of_table) {
+        if (table[h] == key) {
+            return true;
         }
+        i++;
+        h = (h + h2) % size_of_table;
     }
-
-    table = newTable;
-}
-
-
-
-
-// void Hash<T>::resize(){
-// 	int old_size = size_of_table;
-// 	size_of_table *= 2;
-// 	vector<HashNode*> new_table(size_of_table,nullptr);
-// 	for (int i = 0; i < old_size; i++){
-// 		if (table[i] != nullptr && !table[i]->is_deleted){
-// 			cout << "VALUE: " << table[i]->value;
-// 			int h1 = hash1(table[i]->value);
-// 			int h2 = hash2(table[i]->value);
-// 			int j = 0;
-// 			// int h1 = (h1 + j * h2)% size_of_table;
-// 			while(table[h1] != nullptr && j < size_of_table){
-// 				// cout<< "CUR: " << table[h1]->value << "\n";
-// 				h1 = (h1 + h2)% size_of_table;
-// 				j++;
-// 				// h1 = (h1 + j * h2)% size_of_table;
-// 			}
-// 			cout << "h1: " << h1 << "\n";
-// 			new_table[h1] = new HashNode(table[i]->value);
-// 		}
-// 	}
-
-// 	table = new_table;
-// }
-
-
-template<typename T>
-bool Hash<T>::insert(const T& elem){
-	double alpha  = (double)count_of_elements / (double)size_of_table;
-	// cout << "BEFORE: ";
-	// show();
-	if (alpha >= 0.75){
-		rehash();
-		// cout << "BEFORE: ";
-		// show();
-	}
-
-	int h1 = hash1(elem);
-	int h2 = hash2(elem);
-
-	int i = 0;
-	int firstdeleted = -1;
-	while (table[h1] != nullptr && i < size_of_table){
-		if (table[h1]->value == elem && !table[h1]->is_deleted){
-			return false;
-		}
-		if (table[h1]->is_deleted && firstdeleted < 0){
-			firstdeleted = h1;
-		}
-			h1 = (h1 + h2)% size_of_table;
-			i++;
-	}
-
-	if (firstdeleted < 0){
-		table[h1] = new HashNode(elem);
-	}
-	else{
-		table[firstdeleted]->value = elem;
-		table[firstdeleted]->is_deleted = false;
-	}
-	count_of_elements++;
-	// cout << "AFTER: ";
-	// show();
-	return true;
+    return false;
 }
 
 template<typename T>
-bool Hash<T>::remove(const T& elem){
-	int h1 = hash1(elem);
-	int h2 = hash2(elem);
+bool HashTable<T>::add(const T& key) {
+    if ((double)count_of_elements / size_of_table - (double)3/4 > 0.001) {
+        reHash();
+    }
+    int i = 0;
+    int h2 = hash2(key);
+    int h = hash1(key);
 
-	int i = 0;
-	while (table[h1] != nullptr && i < size_of_table){
-		if(table[h1]->value == elem && !table[h1]->is_deleted){
-			table[h1]->is_deleted = true;
-			count_of_elements--;
-			return true;
-		}
-		h1 = (h1 + h2)% size_of_table;
-		i++;
-	}
-	return false;
+    int firstDeleted = 0;
+    bool findDeleted = false;
+    while (table[h] != empty && i < size_of_table) {
+        if (table[h] == key) {
+            return false;
+        }
+        if (table[h] == del) {
+            firstDeleted = h;
+            findDeleted = true;
+        }
+        i++;
+        h = (h + h2) % size_of_table;
+    }
+    if (table[h] != empty) {
+        if (findDeleted) {
+            table[firstDeleted] = key;
+            count_of_elements++;
+            return true;
+        }
+        return false;
+    }
+    table[h] = key;
+    count_of_elements++;
+    return true;
 }
 
 
 template<typename T>
-bool Hash<T>::search(const T& elem){
-	int h1 = hash1(elem);
-	int h2 = hash2(elem);
-
-	int i = 0;
-	while (table[h1] != nullptr && i < size_of_table){
-		if (table[h1]->value == elem && !table[h1]->is_deleted){
-			return true;
-		}
-		h1 = (h1 + h2)% size_of_table;
-		i++;;
-	}
-	return false;
+bool HashTable<T>::remove(const T& key) {
+    int i = 0;
+    int h2 = hash2(key);
+    int h = hash1(key);
+    while (table[h] != key && i < size_of_table) {
+        if (table[h] == empty) {
+            return false;
+        }
+        i++;
+        h = (h + h2) % size_of_table;
+    }
+    if (table[h] == key) {
+        table[h] = del;
+        count_of_elements--;
+        return true;
+    }
+    return false;
 }
 
-
-int main() {
+int main(int argc, const char * argv[]) {
+    HashTable<std::string> dict(8, "wqer09234", "wery345324");
     char c;
-    string word;
+    std::string str, answ;
 
-    Hash<string> tb(8);
-
-    while (cin >> c >> word) {
-        bool result;
-
+    while (std::cin.get(c)) {
+        std::cin >> str;
         switch (c) {
-        case '+':
-            result = tb.insert(word);
-            break;
-        case '-':
-            result = tb.remove(word);
-            break;
-        case '?':
-            result = tb.search(word);
-            break;
-        default:
-            result = false;
+            case '+':
+                std::cout << (dict.add(str) ? "OK" : "FAIL") << std::endl;
+                break;
+            case '-':
+                std::cout << (dict.remove(str) ? "OK" : "FAIL") << std::endl;
+                break;
+            case '?':
+                std::cout << (dict.has(str) ? "OK" : "FAIL") << std::endl;
+                break;
+            default:
+                break;
         }
-
-        cout << ((result) ? "OK" : "FAIL") << "\n";
+        std::cin.get();
     }
+
     return 0;
 }
